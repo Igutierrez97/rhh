@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String  @id @default(uuid())
+  name                  String
+  email                 String  @unique
+  password              String 
+  role                  String  @default("USER")
+  uploadedFiles         File[]  @relation("UploadedFiles") // Archivos subidos por este usuario
+  assignedFiles         File[]  @relation("AssignedFiles") // Archivos asignados a este administrador
+}
+
+model File {
+  id                    String   @id @default(uuid())
+  name                  String
+  path                  String            
+  depar                 String
+  status                String
+  createdAt             DateTime @default(now())
+  uploadedById          String // Clave foránea que referencia al usuario que subió el archivo
+  uploadedBy            User     @relation("UploadedFiles", fields: [uploadedById], references: [id], onDelete: Cascade) // Relación con el usuario que subió el archivo
+  assignedToId          String? // Clave foránea que referencia al administrador asignado (puede ser nulo)
+  assignedTo            User?    @relation("AssignedFiles", fields: [assignedToId], references: [id], onDelete: Cascade) // Relación con el administrador asignado
+}
+
+
+
+
+
