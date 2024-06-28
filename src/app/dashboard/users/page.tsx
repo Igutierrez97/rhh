@@ -32,7 +32,7 @@ function User() {
   return (
     <div>
       <ModalProvider>
-        <Modal title={'Crear Usuario'}>
+        <Modal title={'Crear Usuario'} option={false}>
           <FormAddUser onAddUser={handleAddUser} />
         </Modal>
         <UserTable initialUsers={users} />

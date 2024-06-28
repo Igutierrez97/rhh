@@ -23,11 +23,28 @@ export default function UploadFile() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setFileName(event.target.files[0].name);
+      const file = event.target.files[0];
+      const validExtensions = [".xls", ".xlsx"];
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+  
+      if (!validExtensions.includes(`.${fileExtension}`)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          file: "Archivo no válido. Solo se permiten archivos de Excel (.xls, .xlsx).",
+        }));
+        setFileName("No se ha seleccionado archivo");
+      } else {
+        setFileName(file.name);
+        setErrors((prevErrors) => {
+          const { file, ...otherErrors } = prevErrors; // Remove the file error if present
+          return otherErrors;
+        });
+      }
     } else {
       setFileName("No se ha seleccionado archivo");
     }
   };
+  
 
   const handleDepartmentChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -121,93 +138,94 @@ export default function UploadFile() {
     }
   };
 
-  return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
-      {errors.form && <div className="text-red-500 mb-4">{errors.form}</div>}
-      <div>
-        <label
-          htmlFor="adminSelect"
-          className="block text-gray-700 font-semibold mb-2"
-        >
-          Asignado a
-        </label>
-        <select
-          id="adminSelect"
-          className="select select-bordered w-full max-w-xs"
-          value={selectedAdmin}
-          onChange={handleAdminChange}
-        >
-          <option value="" disabled>
-            Selecciona un administrador
-          </option>
-          {admins.map((admin) => (
-            <option key={admin.id} value={admin.id}>
-              {admin.name}
-            </option>
-          ))}
-        </select>
-        {errors.admin && (
-          <div className="text-red-500 text-sm mt-1">{errors.admin}</div>
-        )}
-      </div>
-      <div>
-        <label
-          htmlFor="nombreDepartamento"
-          className="block text-gray-700 font-semibold mb-2"
-        >
-          Nombre del Departamento
-        </label>
-        <input
-          id="nombreDepartamento"
-          type="text"
-          placeholder="Ej. Recursos Humanos"
-          className="input input-bordered w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={department}
-          onChange={handleDepartmentChange}
-        />
-        {errors.department && (
-          <div className="text-red-500 text-sm mt-1">{errors.department}</div>
-        )}
-      </div>
-      <div>
-        <label
-          htmlFor="archivo"
-          className="block text-gray-700 font-semibold mb-2"
-        >
-          Archivo
-        </label>
-        <div className="relative">
-          <input
-            id="archivo"
-            type="file"
-            ref={fileInputRef}
-            className="file-input file-input-bordered file-input-primary absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            onChange={handleFileChange}
-          />
-          <div className="flex items-center justify-start h-12 border border-dashed border-gray-300 rounded-md p-2">
-            <button
-              type="button"
-              className="btn bg-blue-600 py-2 px-4 rounded text-white font-bold hover:bg-blue-700"
-              onClick={handleButtonClick}
-            >
-              Elegir archivo
-            </button>
-            <span className="ml-3 text-gray-500">{fileName}</span>
-          </div>
-        </div>
-        <span className="text-sm text-gray-500 mt-1 block">
-          Formatos permitidos: XLSX
-        </span>
-        {errors.file && (
-          <div className="text-red-500 text-sm mt-1">{errors.file}</div>
-        )}
-      </div>
-      <button
-        type="submit"
-        className="btn bg-blue-600 w-full py-2 rounded text-white font-bold hover:bg-blue-700"
+ return (
+  <form className="space-y-6" onSubmit={handleSubmit}>
+    {errors.form && <div className="text-red-500 mb-4">{errors.form}</div>}
+    <div>
+      <label
+        htmlFor="adminSelect"
+        className="block text-gray-700 font-semibold mb-2"
       >
-        Subir Documento
-      </button>
-    </form>
-  );
+        Asignado a
+      </label>
+      <select
+        id="adminSelect"
+        className="select select-bordered w-full max-w-xs"
+        value={selectedAdmin}
+        onChange={handleAdminChange}
+      >
+        <option value="" disabled>
+          Selecciona un administrador
+        </option>
+        {admins.map((admin) => (
+          <option key={admin.id} value={admin.id}>
+            {admin.name}
+          </option>
+        ))}
+      </select>
+      {errors.admin && (
+        <div className="text-red-500 text-sm mt-1">{errors.admin}</div>
+      )}
+    </div>
+    <div>
+      <label
+        htmlFor="nombreDepartamento"
+        className="block text-gray-700 font-semibold mb-2"
+      >
+        Nombre del Departamento
+      </label>
+      <input
+        id="nombreDepartamento"
+        type="text"
+        placeholder="Ej. Recursos Humanos"
+        className="input input-bordered w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={department}
+        onChange={handleDepartmentChange}
+      />
+      {errors.department && (
+        <div className="text-red-500 text-sm mt-1">{errors.department}</div>
+      )}
+    </div>
+    <div>
+      <label
+        htmlFor="archivo"
+        className="block text-gray-700 font-semibold mb-2"
+      >
+        Archivo
+      </label>
+      <div className="relative">
+        <input
+          id="archivo"
+          type="file"
+          ref={fileInputRef}
+          className="file-input file-input-bordered file-input-primary absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          onChange={handleFileChange}
+        />
+        <div className="flex items-center justify-start h-12 border border-dashed border-gray-300 rounded-md p-2">
+          <button
+            type="button"
+            className="btn bg-blue-600 py-2 px-4 rounded text-white font-bold hover:bg-blue-700"
+            onClick={handleButtonClick}
+          >
+            Elegir archivo
+          </button>
+          <span className="ml-3 text-gray-500">{fileName}</span>
+        </div>
+      </div>
+      <span className="text-sm text-gray-500 mt-1 block">
+        Formatos permitidos: XLSX
+      </span>
+      {errors.file && (
+        <div className="text-red-500 text-sm mt-1">{errors.file}</div>
+      )}
+    </div>
+    <button
+      type="submit"
+      className="btn bg-blue-600 w-full py-2 rounded text-white font-bold hover:bg-blue-700"
+    >
+      Subir Documento
+    </button>
+  </form>
+);
+
 }

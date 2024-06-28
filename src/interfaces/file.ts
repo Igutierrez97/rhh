@@ -14,6 +14,14 @@ export interface Files {
     uploadedByName: string;
 }
 
+export interface FilesUpdate {
+    name?:           string;
+    depar?:          string;
+    status?:         string 
+    createdAt?:      Date;
+    assignedToId?:   string;
+}
+
 export interface UploadedBy {
     id:       string;
     name:     string;

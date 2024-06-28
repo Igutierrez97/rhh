@@ -1,6 +1,7 @@
 export * from './AdminFIleTable';
 export * from './Alert';
 export * from './Badge';
+export * from './EditFileForm';
 export { default as FileTable } from './FileTable/FileTable';
 export * from './FormAddUser/http/http';
 export * from './FormAddUser';

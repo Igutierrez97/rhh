@@ -7,6 +7,7 @@ import { useModal } from "../Modal/context/ModalContext";
 import { Modal } from "../Modal";
 import { DeleteIcon, EditIcon } from "../icons";
 import { Badge } from "../Badge";
+import { EditFileForm } from "../EditFileForm";
 
 export default function FileTable() {
   const [files, setFiles] = useState<Files[]>([]);
@@ -108,7 +109,9 @@ export default function FileTable() {
                     <Badge content={file.status.toUpperCase()} />
                   </td>
                   <td className="flex gap-3 relative">
-                    <EditIcon width={20} height={20} />
+                    <Modal option={true} title="Editar Documento">
+                    <EditFileForm  file={file} key={index}/>
+                    </Modal>
                     <DeleteIcon
                       onClick={() => confirmDelete(file)}
                       width={20}
