@@ -6,20 +6,31 @@ import { EditIcon } from "../icons";
 interface ModalProps {
   children: ReactNode;
   title: string;
-  option?: boolean;
+  option?: "create" | "edit";
 }
 
 const Modal: FC<ModalProps> = ({ children, title, option }) => {
-  const { isOpen, closeModal, openModal } = useModal();
+  const {
+    isCreateOpen,
+    isEditOpen,
+    closeCreateModal,
+    closeEditModal,
+    openCreateModal,
+    openEditModal,
+  } = useModal();
+
+  const isOpen = option === "create" ? isCreateOpen : isEditOpen;
+  const closeModal = option === "create" ? closeCreateModal : closeEditModal;
+  const openModal = option === "create" ? openCreateModal : openEditModal;
 
   return (
     <>
-      {!option ? (
+      {option === "create" ? (
         <button className="btn bg-blue-600 text-white" onClick={openModal}>
           {title}
         </button>
       ) : (
-        <EditIcon width={20} height={20} onClick={openModal} />
+        null
       )}
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -40,4 +51,5 @@ const Modal: FC<ModalProps> = ({ children, title, option }) => {
     </>
   );
 };
+
 export default Modal;

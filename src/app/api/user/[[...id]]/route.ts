@@ -2,8 +2,14 @@ import { prisma } from "@/libs/prisma";
 import { PrismaClientRustPanicError } from "@prisma/client/runtime/library";
 import { hash } from "argon2";
 
+interface ParamProps{
+  params:{
+    id:string
+  }
+}
+
 //!Obtener Usuario por ID
-export async function GET( req:Request,  { params }: any) {
+export async function GET( req:Request,  { params }: ParamProps) {
 
   try {
     if (!params || !params.id || !params.id[0]) {
@@ -123,51 +129,63 @@ export async function POST(request: Request) {
 }
 
 //!Editar usuario
-export async function PUT(request: Request, { params }: any) {
+export async function PUT(request: Request, { params }: ParamProps) {
   try {
     const { id } = params;
     const { name, email, password, role } = await request.json();
 
-    if (email) {
+    if (!id) {
+      return new Response(
+        JSON.stringify({ error: "Missing user ID parameter" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const updateData: { [key: string]: any } = {};
+
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) {
       const existingUser = await prisma.user.findUnique({
         where: { email },
       });
-
-      if (existingUser) {
-        return new Response(JSON.stringify({ error: "Email already exists" }), {
-          status: 409,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+      if (existingUser && existingUser.id !== id[0]) {
+        return new Response(
+          JSON.stringify({ error: "Email already exists" }),
+          { status: 409, headers: { "Content-Type": "application/json" } }
+        );
       }
-
       // Validar el formato del email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return new Response(JSON.stringify({ error: "Invalid email format" }), {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        return new Response(
+          JSON.stringify({ error: "Invalid email format" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
       }
+      updateData.email = email;
     }
+
+    if (password !== undefined) {
+      updateData.password = await hash(password);
+    }
+
+    if (role !== undefined) updateData.role = role;
 
     const user = await prisma.user.update({
       where: { id: id[0] },
-      data: { email, name, password: await hash(password), role },
+      data: updateData,
     });
 
-    return Response.json(user);
-  } catch (error) {
-    console.log(error, "error role");
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
+    return new Response(JSON.stringify(user), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
 

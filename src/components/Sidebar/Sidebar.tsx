@@ -1,13 +1,15 @@
 import { Session } from "next-auth";
 import Link from "next/link";
 
-export default async function Sidebar({session}:{session:Session|null}) {
-  
-  
+export default async function Sidebar({
+  session,
+}: {
+  session: Session | null;
+}) {
   return (
     <div className="w-72 min-h-screen bg-gray-800 shadow-lg">
       <div className="flex flex-col items-center py-6">
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-white">Menú</h1>
       </div>
       <nav className="mt-10">
         <Link href="/dashboard">
@@ -29,7 +31,7 @@ export default async function Sidebar({session}:{session:Session|null}) {
             Documentos
           </div>
         </Link>
-        {session?.user?.role === 'ADMIN' && (
+        {session?.user?.role === "ADMIN" && (
           <Link href="/dashboard/users">
             <div className="w-full px-6 py-3 flex items-center text-white text-lg font-medium hover:bg-gray-700 transition-colors duration-300 cursor-pointer">
               <svg

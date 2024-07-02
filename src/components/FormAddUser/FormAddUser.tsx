@@ -9,10 +9,11 @@ interface FormAddUserProps {
   onAddUser: (newUser: UserInterface) => void;
 }
 
-const FormAddUser = ({onAddUser}:FormAddUserProps) => {
+const FormAddUser = ({ onAddUser }: FormAddUserProps) => {
   const options = ["USER", "ADMIN"];
-  const { closeModal } = useModal();
-  const [error, setError] = useState("");
+  const { closeCreateModal } = useModal();
+  const [errors, setErrors] = useState<Partial<FormDataInterface>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormDataInterface>({
     name: "",
     email: "",
@@ -21,7 +22,7 @@ const FormAddUser = ({onAddUser}:FormAddUserProps) => {
     role: "",
   });
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -37,99 +38,136 @@ const FormAddUser = ({onAddUser}:FormAddUserProps) => {
     });
   };
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    let formErrors: Partial<FormDataInterface> = {};
+    setGeneralError(null);
 
-    const { confirmPassword, ...formDataWithoutConfirm } = formData;
-
-    for (const key in formDataWithoutConfirm) {
-      if (Object.prototype.hasOwnProperty.call(formDataWithoutConfirm, key)) {
-        const value =
-          formDataWithoutConfirm[key as keyof typeof formDataWithoutConfirm];
-        if (value === "") {
-          setError(`${key} no puede estar vacío`);
-          return;
-        }
+    // Validar que todos los campos estén llenos
+    for (const key in formData) {
+      if (formData[key as keyof typeof formData] === "") {
+        formErrors[key as keyof typeof formData] =
+          key === "confirmPassword"
+            ? "Confirmar contraseña no puede estar vacío"
+            : key === "name"
+            ? "Nombre y apellido no puede estar vacío"
+            : `${key.charAt(0).toUpperCase() + key.slice(1)} no puede estar vacío`;
       }
     }
 
+    // Validar el formato del correo electrónico
+    if (!validateEmail(formData.email)) {
+      formErrors.email = "Correo electrónico no tiene un formato válido";
+    }
+
+    // Validar que la contraseña tenga al menos 8 caracteres
+    if (formData.password.length < 8) {
+      formErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    }
+
+    // Validar que la contraseña y la confirmación coincidan
     if (formData.password !== formData.confirmPassword) {
-      setError("Contraseña no coincide con confirmar contraseña");
-    } else {
-      try {
-        const res = await http(formData);
-        if (res.ok) {
-          const data = await res.json();
-         
-
-          // Llamar a la función onAddUser pasando los datos del nuevo usuario
-          onAddUser(data);
-        } else {
-          console.error("Error al enviar el formulario");
-        }
-      } catch (error) {
-        console.error("Error al enviar la solicitud:", error);
-        console.log(error); // Logging the error here
-      }
+      formErrors.confirmPassword = "La contraseña no coincide con la confirmación de contraseña";
     }
-    
-    closeModal()
-};
+
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
+
+    try {
+      const res = await http(formData);
+      if (res.ok) {
+        const data = await res.json();
+
+        // Llamar a la función onAddUser pasando los datos del nuevo usuario
+        onAddUser(data);
+        closeCreateModal();
+      } else {
+        setGeneralError("Error al enviar el formulario");
+      }
+    } catch (error) {
+      console.error("Error al enviar la solicitud:", error);
+      setGeneralError("Error al enviar la solicitud");
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 items-center">
-      <input
-        type="text"
-        placeholder="Nombres y Apellidos"
-        className="input input-bordered input-md w-full max-w-xs"
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-      />
-      <input
-        type="email"
-        placeholder="Correo Electronico"
-        className="input input-bordered input-md w-full max-w-xs"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        className="input input-bordered input-md w-full max-w-xs"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-      />
-      <input
-        type="password"
-        placeholder="Confirme su contraseña"
-        className="input input-bordered input-md w-full max-w-xs"
-        name="confirmPassword"
-        value={formData.confirmPassword}
-        onChange={handleChange}
-      />
-      <label className="form-control w-full max-w-xs">
-        <select
-          value={formData.role}
-          onChange={handleSelectChange}
-          className="select select-bordered w-full max-w-xs"
-        >
-          <option disabled value="">
-            Rol
-          </option>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+      {generalError && <p className="text-red-500">{generalError}</p>}
+      <div className="flex flex-col items-start w-full max-w-xs">
+        <input
+          type="text"
+          placeholder="Nombres y Apellidos"
+          className="input input-bordered input-md w-full"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+        />
+        {errors.name && <p className="text-red-500">{errors.name}</p>}
+      </div>
+      <div className="flex flex-col items-start w-full max-w-xs">
+        <input
+          type="email"
+          placeholder="Correo Electrónico"
+          className="input input-bordered input-md w-full"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+        />
+        {errors.email && <p className="text-red-500">{errors.email}</p>}
+      </div>
+      <div className="flex flex-col items-start w-full max-w-xs">
+        <input
+          type="password"
+          placeholder="Contraseña"
+          className="input input-bordered input-md w-full"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+        />
+        {errors.password && <p className="text-red-500">{errors.password}</p>}
+      </div>
+      <div className="flex flex-col items-start w-full max-w-xs">
+        <input
+          type="password"
+          placeholder="Confirme su contraseña"
+          className="input input-bordered input-md w-full"
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+        />
+        {errors.confirmPassword && <p className="text-red-500">{errors.confirmPassword}</p>}
+      </div>
+      <div className="flex flex-col items-start w-full max-w-xs">
+        <label className="form-control w-full">
+          <select
+            value={formData.role}
+            onChange={handleSelectChange}
+            className="select select-bordered w-full"
+          >
+            <option disabled value="">
+              Rol
             </option>
-          ))}
-        </select>
-      </label>
-      <div>
-        <button type="submit" className="btn mr-3 bg-green-600 text-white">
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+        {errors.role && <p className="text-red-500">{errors.role}</p>}
+      </div>
+      <div className="flex gap-3">
+        <button type="submit" className="btn bg-green-600 text-white">
           Crear Usuario
         </button>
-        <button type="button" className="btn mr-3" onClick={closeModal}>
+        <button type="button" className="btn" onClick={closeCreateModal}>
           Cancelar
         </button>
       </div>

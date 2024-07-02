@@ -2,9 +2,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ModalContextProps {
-  isOpen: boolean;
-  openModal: () => void;
-  closeModal: () => void;
+  isCreateOpen: boolean;
+  isEditOpen: boolean;
+  openCreateModal: () => void;
+  closeCreateModal: () => void;
+  openEditModal: () => void;
+  closeEditModal: () => void;
 }
 
 const ModalContext = createContext<ModalContextProps | undefined>(undefined);
@@ -22,14 +25,19 @@ interface ModalProviderProps {
 }
 
 export const ModalProvider = ({ children }: ModalProviderProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const openModal = () => setIsOpen(true);
-  const closeModal = () => setIsOpen(false);
+  const openCreateModal = () => setIsCreateOpen(true);
+  const closeCreateModal = () => setIsCreateOpen(false);
+
+  const openEditModal = () => setIsEditOpen(true);
+  const closeEditModal = () => setIsEditOpen(false);
 
   return (
-    <ModalContext.Provider value={{ isOpen, openModal, closeModal }}>
+    <ModalContext.Provider value={{ isCreateOpen, isEditOpen, openCreateModal, closeCreateModal, openEditModal, closeEditModal }}>
       {children}
     </ModalContext.Provider>
   );
 };
+

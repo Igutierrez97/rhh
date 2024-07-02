@@ -9,7 +9,7 @@ import { useModal } from "../Modal/context/ModalContext";
  }
 
 const EditFileForm: React.FC<EditFileFormProps> = ({ file }) => {
-  const { closeModal } = useModal();
+  const { closeEditModal } = useModal();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string>(file.name);
   const [admins, setAdmins] = useState<UserInterface[]>([]);
@@ -93,8 +93,7 @@ const EditFileForm: React.FC<EditFileFormProps> = ({ file }) => {
 
       // Procesar la respuesta
       const data = await response.json();
-      console.log("File updated successfully:", data);
-      closeModal(); // Cerrar el modal después de actualizar exitosamente
+      closeEditModal(); // Cerrar el modal después de actualizar exitosamente
     } catch (error) {
       console.error("Error updating file:", error);
       setErrors((prevErrors) => ({

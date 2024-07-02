@@ -1,8 +1,11 @@
-"use client";
-import { useEffect, useState } from "react";
+'use client'
+import React, { useEffect, useState } from "react";
 import { UserInterface } from "@/interfaces";
 import { DeleteIcon, EditIcon } from "../icons";
-
+import { Modal } from "../Modal";
+import { EditUserForm } from "../EditUserForm";
+import { useModal } from "../Modal/context/ModalContext";
+import { Loading } from "../Loading";
 
 export async function deleteData(id: string): Promise<boolean> {
   try {
@@ -27,14 +30,21 @@ interface UserTableProps {
 }
 
 const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
-
   const [userToDelete, setUserToDelete] = useState<UserInterface | null>(null);
+  const [userToEdit, setUserToEdit] = useState<UserInterface | null>(null);
   const [users, setUsers] = useState<UserInterface[]>([]);
+  const [loading, setLoading] = useState(true); // Estado de carga
+  const { openEditModal } = useModal();
 
   useEffect(() => {
-    setUsers(initialUsers);
-  }, [initialUsers]);
-  
+    // Simula una carga inicial con un retardo
+    const timer = setTimeout(() => {
+      setUsers(initialUsers);
+      setLoading(false); // Cuando se carguen los datos, se desactiva el estado de carga
+    }, 1000); // Simula una carga de 1 segundo (ajusta según tu lógica real o eliminación del temporizador)
+
+    return () => clearTimeout(timer); // Limpia el temporizador en la limpieza de efectos
+  }, [initialUsers ]);
 
   const handleDelete = async () => {
     if (userToDelete) {
@@ -63,6 +73,11 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
 
   return (
     <div className="min-h-screen flex justify-center items-start relative">
+      {loading && ( // Mostrar un indicador de carga mientras se carga
+        <div className="fixed inset-0 flex items-center justify-center z-50 ">
+          <Loading/>
+        </div>
+      )}
       <div className="overflow-x-auto w-full">
         <table className="table w-full">
           <thead>
@@ -82,13 +97,25 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers }) => {
                 <td>{user.email}</td>
                 <td>{user.role}</td>
                 <td className="flex gap-3 relative">
-                  <EditIcon width={20} height={20} />
-                  <DeleteIcon
-                    onClick={() => confirmDelete(user)}
-                    width={20}
-                    height={20}
-                    className="cursor-pointer"
-                  />
+                  {/* Modal de Edición */}
+                  <EditIcon width={20} height={20} onClick={() => { setUserToEdit(user); openEditModal() }} />
+
+                  {/* Icono de Eliminar */}
+                  <div className="tooltip" data-tip="Eliminar">
+                    <DeleteIcon
+                      onClick={() => confirmDelete(user)}
+                      width={20}
+                      height={20}
+                      className="cursor-pointer"
+                    />
+                  </div>
+
+                  {userToEdit === user && (
+                    <Modal title="Editar usuario" key={user.id} option="edit">
+                      <EditUserForm user={userToEdit} />
+                    </Modal>
+                  )}
+
                   {userToDelete === user && (
                     <div className="fixed inset-0 flex items-center justify-center z-50">
                       <div className="modal-box bg-white p-4 rounded shadow-md border border-gray-200">

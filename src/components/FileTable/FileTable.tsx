@@ -5,7 +5,7 @@ import { UploadFile } from "../UploadFileForm";
 import { Loading } from "../Loading";
 import { useModal } from "../Modal/context/ModalContext";
 import { Modal } from "../Modal";
-import { DeleteIcon, EditIcon } from "../icons";
+import { DeleteIcon, DownloadIcon, EditIcon } from "../icons";
 import { Badge } from "../Badge";
 import { EditFileForm } from "../EditFileForm";
 
@@ -13,7 +13,8 @@ export default function FileTable() {
   const [files, setFiles] = useState<Files[]>([]);
   const [loading, setLoading] = useState(true);
   const [fileToDelete, setFileToDelete] = useState<Files | null>(null);
-  const { isOpen } = useModal();
+  const [fileToEdit, setFileToEdit] = useState<Files | null>(null);
+  const { openCreateModal, openEditModal } = useModal();
 
   async function deleteData(id: string): Promise<boolean> {
     try {
@@ -53,7 +54,7 @@ export default function FileTable() {
     };
 
     fetchFiles();
-  }, [isOpen]);
+  }, [openCreateModal, openEditModal]);
 
   const confirmDelete = (file: Files) => {
     setFileToDelete(file);
@@ -75,7 +76,7 @@ export default function FileTable() {
 
   return (
     <>
-      <Modal title="Crear Documento">
+      <Modal title="Crear Documento" option="create">
         <UploadFile />
       </Modal>
 
@@ -109,15 +110,29 @@ export default function FileTable() {
                     <Badge content={file.status.toUpperCase()} />
                   </td>
                   <td className="flex gap-3 relative">
-                    <Modal option={true} title="Editar Documento">
-                    <EditFileForm  file={file} key={index}/>
-                    </Modal>
+
+                    <DownloadIcon href={file.path} />
+                    
+                    <EditIcon className={`tooltip ${file.status === 'pagado' ? 'pointer-events-none opacity-50' : ''}`} width={20} height={20} onClick={()=>{setFileToEdit(file); openEditModal()}}/>
+
+
+                    <div className={`tooltip ${file.status === 'pagado' ? 'pointer-events-none opacity-50' : ''}`} data-tip="Eliminar">
                     <DeleteIcon
                       onClick={() => confirmDelete(file)}
                       width={20}
                       height={20}
                       className="cursor-pointer"
                     />
+                    </div>
+
+                    {fileToEdit !== null && (
+                      <Modal title="Editar Documento" option="edit">
+                        <EditFileForm file={fileToEdit}/>
+                      </Modal>
+                    )
+                    
+                    }
+                    
                     {fileToDelete === file && (
                       <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="modal-box bg-white p-4 rounded shadow-md border border-gray-200">

@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useModal } from "../Modal/context/ModalContext";
 
 export default function UploadFile() {
-  const { closeModal } = useModal();
+  const { closeCreateModal } = useModal();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string>(
     "No se ha seleccionado archivo"
@@ -128,7 +128,7 @@ export default function UploadFile() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      closeModal();
+      closeCreateModal();
     } catch (error) {
       console.error("Error uploading document:", error);
       setErrors((prevErrors) => ({

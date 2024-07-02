@@ -43,7 +43,7 @@ export const POST = async (req: any) => {
   const file = formData.get("file");
   const depa = formData.get("depa");
   const assignedTo = formData.get("assignedTo");
-  console.log("departament", depa);
+  
 
   if (!file) {
     return NextResponse.json({ error: "No files received." }, { status: 400 });
@@ -88,7 +88,7 @@ export const POST = async (req: any) => {
     // Escribe el archivo en el directorio especificado con el nombre único
     await writeFile(filePath, buffer);
 
-    console.log(depa);
+   
 
     if (session?.user?.email) {
       // Guardar la información del archivo en la base de datos usando Prisma
